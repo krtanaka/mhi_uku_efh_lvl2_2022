@@ -32,45 +32,11 @@ cov_static = df_clim %>%
 rm(df_clim)
 
 # load survey data, adjust columns, create id
-df = readRDS("data/rea/NCRMP_fish_site_20102019.rds")
-
-df$ISLAND = gsub(" ", "_", df$ISLAND)
-df$DATE_ = as.character(df$DATE_)
-df$DATE_ = substr(df$DATE_, 1, 10)
-
-colnames(df)[14] = "LAT"
-colnames(df)[15] = "LON"
-
-colnames(df)[7:9] = c("Year", "Month", "Day")
-df$Year = substr(df$DATE_, 1, 4)
-df$Month = substr(df$DATE_, 6, 7)
-df$Day = substr(df$DATE_, 9, 10)
-
-df$DATE = paste0(df$Month, "-", df$Day, "-", df$Year)
-df$DATE_R = lubridate::mdy(df$DATE)
-df$id = paste(df$LON, df$LAT, df$DATE_R, df$ISLAND, sep = "-")
-
-islands = c("Kauai", #1
-            "Lehua", #2
-            "Niihau", #3
-            "Kaula", #4
-            "Oahu", #5
-            "Molokai", #6
-            "Maui", #7
-            "Lanai", #8
-            "Molokini", #9
-            "Kahoolawe", #10
-            "Hawaii")#[7:11]
-
 # filter by islands, region
 # choose abundance as response variable 
 # filter by Uku (APVI)
 
-df = df %>% 
-  subset(ISLAND %in% islands) %>% 
-  subset(REGION == "MHI") %>%
-  subset(Response == "Abund_m2") %>% 
-  select(id, names(df[,1:18]), names(select(df, contains("APVI"))))
+df = readRDS("data/rea/NCRMP_fish_site_20102019.rds")
 
 # look at size distributions
 islands = unique(df$ISLAND)
