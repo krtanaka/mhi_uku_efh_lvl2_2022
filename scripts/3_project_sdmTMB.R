@@ -19,7 +19,7 @@ n_knots = c(1000, 500, 300, 100)
 
 for (k in 1:length(n_knots)) {
   
-  # k = 2
+  # k = 4
   
   density_model_static = readRDS(paste0("outputs/density_model_static_", n_knots[k], ".rds"))
   density_model_dynamic = readRDS(paste0("outputs/density_model_dynamic_", n_knots[k], ".rds"))
@@ -182,6 +182,63 @@ for (k in 1:length(n_knots)) {
     saveRDS(COG_static, paste0("outputs/COG_bias_corrected_static_", islands[i], "_", n_knots[k], ".rds"))
     saveRDS(COG_dynamic, paste0("outputs/COG_bias_corrected_dynamic_", islands[i], "_", n_knots[k], ".rds"))
     gc()
+    
+    predictions <- predict(density_model_dynamic, newdata = grid_i)
+    
+    sim <- predict(density_model_dynamic, newdata = grid_i, sims = 100)
+    sim_last <- sim[grid_i$year == max(grid_i$year), ] # just plot last year
+    pred_last <- predictions[predictions$year == max(grid_i$year), ]
+    pred_last$median <- apply(exp(sim_last), 1, median)
+    pred_last$lwr <- apply(exp(sim_last), 1, quantile, probs = 0.025)
+    pred_last$upr <- apply(exp(sim_last), 1, quantile, probs = 0.975)
+    pred_last$cv <- round(apply(exp(sim_last), 1, function(x) sd(x) / mean(x)), 2)
+    
+    # Plot the median estimated biomass densities for the last year.
+    
+    (median = pred_last %>% 
+        ggplot(aes(lon, lat, fill = median)) +
+        geom_raster() +
+        scale_fill_gradientn(colours = matlab.like(100), trans = "sqrt", "") +
+        labs(x = expression(paste("Longitude ", degree, "W", sep = "")),
+             y = expression(paste("Latitude ", degree, "N", sep = ""))) +
+        theme_minimal() + 
+        ggtitle("Median estimated density per 100 sq.m in 2019") +
+        theme(aspect.ratio = 0.65,
+              legend.justification = c(0, 0),
+              legend.position = c(0, 0),
+              legend.key = element_rect(colour = NA, fill = NA),
+              legend.text = element_text(color = "white", size = 8),
+              legend.key.size = unit(0.5, "cm"),
+              panel.background = element_rect(fill = "gray10", colour = "gray10"),
+              panel.grid.major = element_line(size = 0.5, linetype = 'solid', colour = "gray20"), 
+              panel.grid.minor = element_line(size = 0.25, linetype = 'solid',colour = "gray20")) + 
+        labs(tag = "(a)"))
+    
+    # And then the CV on the estimates.
+    (cv = pred_last %>% 
+        ggplot(aes(lon, lat, fill = cv)) + 
+        geom_raster() +
+        scale_fill_gradientn(colours = matlab.like(100), "") +
+        labs(x = expression(paste("Longitude ", degree, "W", sep = "")),
+             y = expression(paste("Latitude ", degree, "N", sep = ""))) +
+        theme_minimal() + 
+        ggtitle("CV of estimated density per 100 sq.m in 2019") +
+        theme(aspect.ratio = 0.65,
+              legend.justification = c(0, 0),
+              legend.position = c(0, 0),
+              legend.key = element_rect(colour = NA, fill = NA),
+              legend.text = element_text(color = "white", size = 8),
+              legend.key.size = unit(0.5, "cm"),
+              panel.background = element_rect(fill = "gray10", colour = "gray10"),
+              panel.grid.major = element_line(size = 0.5, linetype = 'solid', colour = "gray20"), 
+              panel.grid.minor = element_line(size = 0.25, linetype = 'solid',colour = "gray20")) + 
+        labs(tag = "(b)"))
+    
+    median + cv
+    
+    png(paste0("outputs/figs_median_cv_", n_knots[k], ".png"), height = 5, width = 12, units = "in", res = 500)
+    print(median + cv)
+    dev.off()
     
   }
   

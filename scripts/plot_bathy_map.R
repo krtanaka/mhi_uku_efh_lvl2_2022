@@ -41,19 +41,17 @@ ggplot() +
   geom_text_repel(data = label, 
                   aes(x = lon, y = lat, label = ISLAND), 
                   fontface = "bold",   
-                  nudge_x = c(0.2, 0.2, 0.2, 0.2, 0.2),
+                  nudge_x = c(0.3, 0.3, 0.3, 0.3, 0.3),
                   nudge_y = c(0.2, 0.2, 0.2, 0.2, 0.2)) +
   coord_fixed() +
-  scale_x_continuous(expand = c(0, 0)) +
-  scale_y_continuous(expand = c(0, 0)) +
-  # theme_light() +
+  # scale_x_continuous(expand = c(0, 0)) +
+  # scale_y_continuous(expand = c(0, 0)) +
+  theme_light() +
   labs(y = " ", x = "") + 
   theme( legend.position = c(1,1),
          legend.justification = c(1.1,1.1),
-         axis.ticks = element_blank(),
-         axis.text = element_blank()) + 
-  labs(tag = "(b)")
-
+         axis.ticks = element_blank())
+         #axis.text = element_blank())
 
 b = marmap::getNOAA.bathy(lon1 = min(-161),
                           lon2 = max(-153),
@@ -65,8 +63,6 @@ b = marmap::fortify.bathy(b)
 
 save(b, file = 'data/MHI_NOAA_bathymetry_1res.RData')
 load('data/MHI_NOAA_bathymetry_1res.RData')
-
-
 
 bathy_island = NULL
 
